@@ -15,8 +15,8 @@ import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
@@ -43,6 +43,7 @@ public class TopViewButton extends Button
     private int mFlingTargetY = 0;
     
     private boolean mIsLongPressEnabled = false;
+    private boolean mIsDragEnabled = false;
     
     private WindowManager mWindowManager;
     
@@ -93,8 +94,8 @@ public class TopViewButton extends Button
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
         {
-            final int SWIPE_MIN_DISTANCE = 30;  
-            final int SWIPE_MAX_OFF_PATH = 250;  
+            final int SWIPE_MIN_DISTANCE = 30;
+            final int SWIPE_MAX_OFF_PATH = 250;
             final int SWIPE_THRESHOLD_VELOCITY_X = 150;
             final int SWIPE_THRESHOLD_VELOCITY_Y = 2000;
             
@@ -114,7 +115,6 @@ public class TopViewButton extends Button
             } else {
                 mFlingTargetY = mWindowParams.y;
             }
-            
             
             if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && 
                     Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY_X) {
@@ -205,7 +205,9 @@ public class TopViewButton extends Button
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
-        mGestureDetector.onTouchEvent(event);
+        if (mIsDragEnabled) {
+            mGestureDetector.onTouchEvent(event);
+        }
         switch (event.getAction()) {
         case MotionEvent.ACTION_DOWN:
             mIsPressedDown = true;
@@ -227,10 +229,12 @@ public class TopViewButton extends Button
                         removeCallbacks(mPendingCheckLongClickRunnable);
                     }
                 }
-                if (Math.abs(x - mTouchStartX) > mDragSlop || Math.abs(y - mTouchStartY) > mDragSlop) {
-                    mIsDragging = true;
-                    if (mOnDragListener != null) {
-                        mOnDragListener.onDrag(this, event);
+                if (mIsDragEnabled) {
+                    if (Math.abs(x - mTouchStartX) > mDragSlop || Math.abs(y - mTouchStartY) > mDragSlop) {
+                        mIsDragging = true;
+                        if (mOnDragListener != null) {
+                            mOnDragListener.onDrag(this, event);
+                        }
                     }
                 }
             } else {
@@ -295,9 +299,20 @@ public class TopViewButton extends Button
         mHeight = (int)h;
     }
     
+    public int getTopViewHeight()
+    {
+        return mWindowParams.height;
+    }
+    
+    public int getTopViewWidth()
+    {
+        return mWindowParams.width;
+    }
+    
     public void setTopButtonX(int x)
     {
         mWindowParams.x = x;
+        invalidate();
     }
     
     public void setTopButtonY(int y)
@@ -308,6 +323,17 @@ public class TopViewButton extends Button
     public void setLayoutGravity(int gravity)
     {
         mWindowParams.gravity = gravity;
+    }
+    
+    @Override
+    public LayoutParams getLayoutParams()
+    {
+        return mWindowParams;
+    }
+    
+    public boolean isAttached()
+    {
+        return mIsAttached;
     }
     
     public void show()
@@ -331,14 +357,18 @@ public class TopViewButton extends Button
         this.setVisibility(View.INVISIBLE);
     }
     
-
+    public void setDragEnabled(boolean isDragEnabled)
+    {
+        mIsDragEnabled = isDragEnabled;
+    }
+    
     @Override
     public boolean performLongClick()
     {
         mIsDragging = true;
         return super.performLongClick();
     }
-
+    
     class CheckForLongClickRunnable implements Runnable
     {
         @Override
@@ -370,7 +400,7 @@ public class TopViewButton extends Button
         return result;
     }
     
-    private void moveTo(int x, int y)
+    public void moveTo(int x, int y)
     {
         if (mWindowParams.x != x || mWindowParams.y != y) {
             int oldX = mWindowParams.x;
@@ -380,7 +410,12 @@ public class TopViewButton extends Button
             if (mWindowParams.y <= mStatusBarHeight) {
                 mWindowParams.y = mStatusBarHeight;
             }
-            mWindowManager.updateViewLayout(this, mWindowParams);
+            if (mIsAttached) {
+                mWindowManager.updateViewLayout(this, mWindowParams);
+            } else {
+                mWindowManager.addView(this, mWindowParams);
+                mIsAttached = true;
+            }
         }
     }
     
@@ -394,24 +429,9 @@ public class TopViewButton extends Button
         smoothMoveBy(x - mWindowParams.x, y - mWindowParams.y);
     }
     
-    private long mLastMove;
     private void smoothMoveBy(int dx, int dy)
     {
         Log.i(TAG, "smoothMoveBy: (" + dx + ", " + dy + ")");
-        //long duration = AnimationUtils.currentAnimationTimeMillis() - mLastMove;
-        //if (duration > 250) {
-            //mScroller.startScroll(mScrollX, mScrollY, dx, dy);
-            //awakenScrollBars(mScroller.getDuration());
-            //invalidate();
-        //} else {
-            //if (!mScroller.isFinished()) {
-            //    mScroller.abortAnimation();
-            //}
-            //scrollBy(dx, dy);
-            //moveBy(dx, dy);
-        //}
-        
-        //mLastMove = AnimationUtils.currentAnimationTimeMillis();
         TopViewAnimator anim = new TopViewAnimator(dx, dy);
         anim.setInterpolater(new DecelerateInterpolator());
         anim.setDuration(100);
