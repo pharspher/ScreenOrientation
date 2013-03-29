@@ -97,7 +97,7 @@ public class TopViewButton extends Button
             final int SWIPE_MIN_DISTANCE = 30;
             final int SWIPE_MAX_OFF_PATH = 250;
             final int SWIPE_THRESHOLD_VELOCITY_X = 150;
-            final int SWIPE_THRESHOLD_VELOCITY_Y = 2000;
+            final int SWIPE_THRESHOLD_VELOCITY_Y = 1500;
             
             Log.i(TAG, "onFling(), vx: " + velocityX + ", vy: " + velocityY);
             mIsFlinging = true;
@@ -176,7 +176,9 @@ public class TopViewButton extends Button
         mWindowParams.height = mHeight;
         mWindowParams.x = 0;
         mWindowParams.y = mStatusBarHeight;
+
         this.setFocusable(true);
+        restoreColor();
     }
     
     public interface OnTopViewButtonClickListener
@@ -213,7 +215,7 @@ public class TopViewButton extends Button
             mIsPressedDown = true;
             mTouchStartX = (int)event.getX();
             mTouchStartY = (int)(event.getY());
-            this.getBackground().setColorFilter(Color.DKGRAY, Mode.MULTIPLY);
+            updateButtonDownEffect();
             if (mIsLongPressEnabled) {
                 postCheckForLongClick();
             }
@@ -224,7 +226,7 @@ public class TopViewButton extends Button
             if (!mIsDragging) {
                 if (!withinViewBound(event.getX(), event.getY())) {
                     mIsPressedDown = false;
-                    this.getBackground().clearColorFilter();
+                    restoreColor();
                     if (mPendingCheckLongClickRunnable != null) {
                         removeCallbacks(mPendingCheckLongClickRunnable);
                     }
@@ -270,7 +272,7 @@ public class TopViewButton extends Button
                     }
                 }
                 mIsPressedDown = false;
-                this.getBackground().clearColorFilter();
+                restoreColor();
             }
             mIsDragging = false;
             mIsFlinging = false;
@@ -391,13 +393,25 @@ public class TopViewButton extends Button
         postDelayed(mPendingCheckLongClickRunnable, 500);
     }
     
-    private int getStatusBarHeight() {
+    private int getStatusBarHeight()
+    {
         int result = 0;
         int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) {
             result = getResources().getDimensionPixelSize(resourceId);
         }
         return result;
+    }
+    
+    private void updateButtonDownEffect()
+    {
+        this.getBackground().setColorFilter(Color.DKGRAY, Mode.MULTIPLY);
+    }
+    
+    private void restoreColor()
+    {
+        this.getBackground().clearColorFilter();
+        //this.getBackground().setColorFilter(Color.parseColor("#FFFF5555"), Mode.MULTIPLY);
     }
     
     public void moveTo(int x, int y)

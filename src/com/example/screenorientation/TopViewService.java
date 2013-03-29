@@ -66,23 +66,14 @@ public class TopViewService extends Service
         mAutoRotateButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
         
         mMenuGroup = new TopViewMenuGroup(mLauncherButton);
-        mMenuGroup.addSubMenu(mLandscapeButton, new OnSubMenuItemClickListener()
+        mMenuGroup.addSubMenu(mAutoRotateButton, new OnSubMenuItemClickListener()
         {
             @Override
             public void onClick(TopViewButton buttonView)
             {
-                mForceRotateManager.rotateScreen(ForceRotateManager.SCREEN_LANDSCAPE);
-                mLauncherButton.setText(R.string.landscape);
-            }
-        });
-        
-        mMenuGroup.addSubMenu(mPortraitButton, new OnSubMenuItemClickListener()
-        {
-            @Override
-            public void onClick(TopViewButton buttonView)
-            {
-                mForceRotateManager.rotateScreen(ForceRotateManager.SCREEN_PORTRAIT);
-                mLauncherButton.setText(R.string.portrait);
+                mForceRotateManager.reset();
+                setAutoOrientationEnabled(getContentResolver(), true);
+                mLauncherButton.setText(R.string.auto_rotate);
             }
         });
         
@@ -98,129 +89,27 @@ public class TopViewService extends Service
             }
         });
         
-        mMenuGroup.addSubMenu(mAutoRotateButton, new OnSubMenuItemClickListener()
+        mMenuGroup.addSubMenu(mPortraitButton, new OnSubMenuItemClickListener()
         {
             @Override
             public void onClick(TopViewButton buttonView)
             {
-                mForceRotateManager.reset();
-                setAutoOrientationEnabled(getContentResolver(), true);
-                mLauncherButton.setText(R.string.auto_rotate);
+                mForceRotateManager.rotateScreen(ForceRotateManager.SCREEN_PORTRAIT);
+                mLauncherButton.setText(R.string.portrait);
+            }
+        });
+        
+        mMenuGroup.addSubMenu(mLandscapeButton, new OnSubMenuItemClickListener()
+        {
+            @Override
+            public void onClick(TopViewButton buttonView)
+            {
+                mForceRotateManager.rotateScreen(ForceRotateManager.SCREEN_LANDSCAPE);
+                mLauncherButton.setText(R.string.landscape);
             }
         });
         
         startForeground(4321, new Notification());
-    }
-    
-    private void showMenu(boolean isShown)
-    {
-        mIsMenuShown = isShown;
-        if (mLandscapeButton == null) {
-            mLandscapeButton = new TopViewButton(this);
-            mLandscapeButton.setText(R.string.landscape);
-            mLandscapeButton.setWidth(this.getResources().getDimension(R.dimen.button_option_width));
-            mLandscapeButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
-            /*
-            mLandscapeButton.setTopButtonX(0);
-            mLandscapeButton.setTopButtonY((int)(this.getResources().getDimension(R.dimen.button_launcher_height)));
-            mLandscapeButton.setOnTopViewButtonClickListener(new OnTopViewButtonClickListener()
-            {
-                @Override
-                public void onClick(TopViewButton buttonView)
-                {
-                    mForceRotateManager.rotateScreen(ForceRotateManager.SCREEN_LANDSCAPE);
-                    mState = STATE_FORCE_LANDSCAPE;
-                    mLauncherButton.setText(R.string.landscape);
-                    mIsMenuShown = false;
-                    showMenu(mIsMenuShown);
-                }
-            });
-            */
-        }
-        
-        if (mPortraitButton == null) {
-            mPortraitButton = new TopViewButton(this);
-            mPortraitButton.setText(R.string.portrait);
-            mPortraitButton.setWidth(this.getResources().getDimension(R.dimen.button_option_width));
-            mPortraitButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
-            mPortraitButton.setTopButtonX(0);
-            mPortraitButton.setTopButtonY((int)(this.getResources().getDimension(R.dimen.button_launcher_height) + 
-                    this.getResources().getDimension(R.dimen.button_option_height)));
-            mPortraitButton.setOnTopViewButtonClickListener(new OnTopViewButtonClickListener()
-            {
-                @Override
-                public void onClick(TopViewButton buttonView)
-                {
-                    mForceRotateManager.rotateScreen(ForceRotateManager.SCREEN_PORTRAIT);
-                    mState = STATE_FORCE_PORTRAIT;
-                    mLauncherButton.setText(R.string.portrait);
-                    mIsMenuShown = false;
-                    showMenu(mIsMenuShown);
-                }
-            });
-        }
-        
-        if (mDisableButton == null) {
-            mDisableButton = new TopViewButton(this);
-            mDisableButton.setText(R.string.disable);
-            mDisableButton.setWidth(this.getResources().getDimension(R.dimen.button_option_width));
-            mDisableButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
-            mDisableButton.setTopButtonX(0);
-            mDisableButton.setTopButtonY((int)(this.getResources().getDimension(R.dimen.button_launcher_height) + 
-                    this.getResources().getDimension(R.dimen.button_option_height) + 
-                    this.getResources().getDimension(R.dimen.button_option_height)));
-            mDisableButton.setOnTopViewButtonClickListener(new OnTopViewButtonClickListener()
-            {
-                @Override
-                public void onClick(TopViewButton buttonView)
-                {
-                    mForceRotateManager.reset();
-                    setAutoOrientationEnabled(getContentResolver(), false);
-                    Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_0);
-                    mState = STATE_DISALBE;
-                    mLauncherButton.setText(R.string.disable);
-                    mIsMenuShown = false;
-                    showMenu(mIsMenuShown);
-                }
-            });
-        }
-        
-        if (mAutoRotateButton == null) {
-            mAutoRotateButton = new TopViewButton(this);
-            mAutoRotateButton.setText(R.string.auto_rotate);
-            mAutoRotateButton.setWidth(this.getResources().getDimension(R.dimen.button_option_width));
-            mAutoRotateButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
-            mAutoRotateButton.setTopButtonX(0);
-            mAutoRotateButton.setTopButtonY((int)(this.getResources().getDimension(R.dimen.button_launcher_height) + 
-                    this.getResources().getDimension(R.dimen.button_option_height) + 
-                    this.getResources().getDimension(R.dimen.button_option_height) + 
-                    this.getResources().getDimension(R.dimen.button_option_height)));
-            mAutoRotateButton.setOnTopViewButtonClickListener(new OnTopViewButtonClickListener()
-            {
-                @Override
-                public void onClick(TopViewButton buttonView)
-                {
-                    mForceRotateManager.reset();
-                    setAutoOrientationEnabled(getContentResolver(), true);
-                    mState = STATE_AUTO;
-                    mLauncherButton.setText(R.string.auto_rotate);
-                    mIsMenuShown = false;
-                    showMenu(mIsMenuShown);
-                }
-            });
-        }
-        
-        if (isShown) {
-            mPortraitButton.show();
-            mLandscapeButton.show();
-            mDisableButton.show();
-            mAutoRotateButton.show();
-        } else {
-            mPortraitButton.hide();
-            mLandscapeButton.hide();
-            mDisableButton.hide();
-            mAutoRotateButton.hide();
-        }
     }
     
     @Override
