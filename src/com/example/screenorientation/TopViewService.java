@@ -4,40 +4,32 @@ import android.app.Notification;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.view.MotionEvent;
-import android.view.Surface;
+import android.view.WindowManager;
 
-import com.example.screenorientation.TopViewButton.OnTopViewButtonClickListener;
-import com.example.screenorientation.TopViewButton.OnTopViewButtonDragListener;
 import com.example.screenorientation.TopViewMenuGroup.OnSubMenuItemClickListener;
 
 public class TopViewService extends Service
 {
-    private static final int STATE_AUTO = 0;
-    private static final int STATE_DISALBE = 1;
-    private static final int STATE_FORCE_PORTRAIT = 2;
-    private static final int STATE_FORCE_LANDSCAPE = 3;
-    
-    private int mState;
-    
     private TopViewButton mLauncherButton;
     
-    private TopViewButton mPortraitButton;
-    private TopViewButton mLandscapeButton;
+    private WindowManager mWindowManager;
+    
+    //private TopViewButton mPortraitButton;
+    //private TopViewButton mLandscapeButton;
     private TopViewButton mAutoRotateButton;
     private TopViewButton mDisableButton;
     
     private ForceRotateManager mForceRotateManager;
     private TopViewMenuGroup mMenuGroup;
     
-    private boolean mIsMenuShown = false;
-
     @Override
     public void onCreate()
     {
         super.onCreate();
+        mWindowManager = (WindowManager)getSystemService(WINDOW_SERVICE);
         mForceRotateManager = ForceRotateManager.getInstance(this);
         
         mLauncherButton = new TopViewButton(this);
@@ -45,15 +37,19 @@ public class TopViewService extends Service
         mLauncherButton.setWidth(this.getResources().getDimension(R.dimen.button_launcher_width));
         mLauncherButton.setHeight(this.getResources().getDimension(R.dimen.button_launcher_height));
         
+        /*
         mLandscapeButton = new TopViewButton(this);
         mLandscapeButton.setText(R.string.landscape);
         mLandscapeButton.setWidth(this.getResources().getDimension(R.dimen.button_option_width));
         mLandscapeButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
+        */
         
+        /*
         mPortraitButton = new TopViewButton(this);
         mPortraitButton.setText(R.string.portrait);
         mPortraitButton.setWidth(this.getResources().getDimension(R.dimen.button_option_width));
         mPortraitButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
+        */
         
         mDisableButton = new TopViewButton(this);
         mDisableButton.setText(R.string.disable);
@@ -84,11 +80,14 @@ public class TopViewService extends Service
             {
                 mForceRotateManager.reset();
                 setAutoOrientationEnabled(getContentResolver(), false);
-                //Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_0);
+                //Configuration config = TopViewService.this.getResources().getConfiguration();
+                int rotation = mWindowManager.getDefaultDisplay().getRotation();
+                Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, rotation);
                 mLauncherButton.setText(R.string.disable);
             }
         });
         
+        /*
         mMenuGroup.addSubMenu(mPortraitButton, new OnSubMenuItemClickListener()
         {
             @Override
@@ -108,6 +107,7 @@ public class TopViewService extends Service
                 mLauncherButton.setText(R.string.landscape);
             }
         });
+        */
         
         startForeground(4321, new Notification());
     }

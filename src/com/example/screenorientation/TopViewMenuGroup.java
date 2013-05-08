@@ -3,10 +3,12 @@ package com.example.screenorientation;
 import java.util.ArrayList;
 
 import android.app.Service;
+import android.content.res.Configuration;
 import android.graphics.Point;
-import android.graphics.Rect;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 
@@ -39,6 +41,7 @@ public class TopViewMenuGroup
             public void onClick(TopViewButton buttonView)
             {
                 mIsMenuShown = !mIsMenuShown;
+                Log.d("roger_tag", "show: " + mIsMenuShown);
                 if (mIsMenuShown) {
                     showMenu(true);
                 } else {
@@ -59,10 +62,56 @@ public class TopViewMenuGroup
                     showMenu(false);
                 }
             }
-            
+        });
+        
+        mMainButton.setOnConfigurationChagnedListener(new TopViewButton.OnConfigurationChangedListener()
+        {
+            @Override
+            public void onConfigurationChagned(Configuration newConfig)
+            {
+                Display display = mWindowManager.getDefaultDisplay();
+                Point displaySize = new Point();
+                display.getSize(displaySize);
+                
+                WindowManager.LayoutParams mainParams = (LayoutParams)mMainButton.getLayoutParams();
+                
+                if (mainParams.x != 0) {
+                    mainParams.x = displaySize.x - mainParams.width;
+                }
+                
+
+                    float ratio = (mainParams.y + mainParams.height) / (float)displaySize.x;
+                    mainParams.y = (int)Math.floor((ratio * displaySize.y) + 0.5f) - mainParams.height;
+                    if (mainParams.y  < getStatusBarHeight()) {
+                        //mainParams.y = displaySize.y - mainParams.height;
+                        mainParams.y  = getStatusBarHeight();
+                    }
+
+                
+                
+                Log.d("roger_tag", "screen height: " + displaySize.y);
+                Log.d("roger_tag", "y: " + (mainParams.y + mainParams.height));
+                
+                mWindowManager.updateViewLayout(mMainButton, mainParams);
+                
+                mShouldUpdateMenuPosition = true;
+                if (mIsMenuShown) {
+                    showMenu(false);
+                }
+            }
         });
         
         mMainButton.show();
+    }
+    
+    private int getStatusBarHeight()
+    {
+        int result = 0;
+        int resourceId = mMainButton.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = mMainButton.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
     }
     
     public void addSubMenu(TopViewButton subMenuButton, final OnSubMenuItemClickListener listener)

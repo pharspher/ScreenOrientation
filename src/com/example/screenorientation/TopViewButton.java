@@ -2,6 +2,7 @@ package com.example.screenorientation;
 
 import android.app.Service;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -57,6 +58,13 @@ public class TopViewButton extends Button
     
     private GestureDetector mGestureDetector;
     
+    public interface OnConfigurationChangedListener
+    {
+        public void onConfigurationChagned(Configuration newConfig);
+    }
+    
+    private OnConfigurationChangedListener mConfigurationChangedListener;
+    
     private GestureDetector.OnGestureListener mOnGestureListener = new GestureDetector.OnGestureListener()
     {
         @Override
@@ -95,7 +103,7 @@ public class TopViewButton extends Button
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
         {
             final int SWIPE_MIN_DISTANCE = 30;
-            final int SWIPE_MAX_OFF_PATH = 250;
+            //final int SWIPE_MAX_OFF_PATH = 250;
             final int SWIPE_THRESHOLD_VELOCITY_X = 150;
             final int SWIPE_THRESHOLD_VELOCITY_Y = 1500;
             
@@ -176,9 +184,23 @@ public class TopViewButton extends Button
         mWindowParams.height = mHeight;
         mWindowParams.x = 0;
         mWindowParams.y = mStatusBarHeight;
-
+        
         this.setFocusable(true);
         restoreColor();
+    }
+    
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig)
+    {
+        if (mConfigurationChangedListener != null) {
+            mConfigurationChangedListener.onConfigurationChagned(newConfig);
+        }
+        super.onConfigurationChanged(newConfig);
+    }
+    
+    public void setOnConfigurationChagnedListener(OnConfigurationChangedListener listener)
+    {
+        mConfigurationChangedListener = listener;
     }
     
     public interface OnTopViewButtonClickListener
@@ -203,6 +225,8 @@ public class TopViewButton extends Button
     
     private int mTouchStartX;
     private int mTouchStartY;
+    private int mTouchStartRawX;
+    private int mTouchStartRawY;
     
     @Override
     public boolean onTouchEvent(MotionEvent event)
@@ -214,13 +238,22 @@ public class TopViewButton extends Button
         case MotionEvent.ACTION_DOWN:
             mIsPressedDown = true;
             mTouchStartX = (int)event.getX();
-            mTouchStartY = (int)(event.getY());
+            mTouchStartY = (int)event.getY();
+            mTouchStartRawX = (int)event.getRawX();
+            mTouchStartRawY = (int)event.getRawY();
             updateButtonDownEffect();
             if (mIsLongPressEnabled) {
                 postCheckForLongClick();
             }
             return false;
         case MotionEvent.ACTION_MOVE:
+            if (!mIsPressedDown) {
+                mTouchStartX = (int)event.getX();
+                mTouchStartY = (int)(event.getY());
+                mTouchStartRawX = (int)event.getRawX();
+                mTouchStartRawY = (int)event.getRawY();
+                mIsPressedDown = true;
+            }
             int x = (int)event.getRawX();
             int y = (int)event.getRawY();
             if (!mIsDragging) {
@@ -231,9 +264,19 @@ public class TopViewButton extends Button
                         removeCallbacks(mPendingCheckLongClickRunnable);
                     }
                 }
+                Log.d("roger_tag", "slop: " + mDragSlop);
+                Log.d("roger_tag", "x_start: " + (mTouchStartX));
+                Log.d("roger_tag", "y_start: " + (mTouchStartY));
+                Log.d("roger_tag", "x: " + x);
+                Log.d("roger_tag", "y: " + y);
+                Log.d("roger_tag", "x_diff: " + (x - mTouchStartX));
+                Log.d("roger_tag", "y_diff: " + (y - mTouchStartY));
+                
                 if (mIsDragEnabled) {
-                    if (Math.abs(x - mTouchStartX) > mDragSlop || Math.abs(y - mTouchStartY) > mDragSlop) {
+                    if (Math.abs(x - mTouchStartRawX) > mDragSlop || Math.abs(y - mTouchStartRawY) > mDragSlop) {
                         mIsDragging = true;
+                        mTouchStartX = (int)event.getX();
+                        mTouchStartY = (int)(event.getY());
                         if (mOnDragListener != null) {
                             mOnDragListener.onDrag(this, event);
                         }
@@ -276,6 +319,7 @@ public class TopViewButton extends Button
             }
             mIsDragging = false;
             mIsFlinging = false;
+            mIsPressedDown = false;
             return true;
         }
         return super.onTouchEvent(event);
@@ -292,12 +336,14 @@ public class TopViewButton extends Button
     public void setWidth(float w)
     {
         mWindowParams.width = (int)w;
+        //mDragSlop = Math.max(mWindowParams.width, mWindowParams.height);
         mWidth = (int)w;
     }
     
     public void setHeight(float h)
     {
         mWindowParams.height = (int)h;
+        //mDragSlop = Math.max(mWindowParams.width, mWindowParams.height);
         mHeight = (int)h;
     }
     
@@ -345,6 +391,7 @@ public class TopViewButton extends Button
             wm.addView(this, mWindowParams);
             mIsAttached = true;
         } else {
+            mWindowManager.updateViewLayout(this, mWindowParams);
             this.setVisibility(View.VISIBLE);
         }
     }
@@ -417,8 +464,8 @@ public class TopViewButton extends Button
     public void moveTo(int x, int y)
     {
         if (mWindowParams.x != x || mWindowParams.y != y) {
-            int oldX = mWindowParams.x;
-            int oldY = mWindowParams.y;
+            //int oldX = mWindowParams.x;
+            //int oldY = mWindowParams.y;
             mWindowParams.x = x;
             mWindowParams.y = y;
             if (mWindowParams.y <= mStatusBarHeight) {
@@ -433,17 +480,17 @@ public class TopViewButton extends Button
         }
     }
     
-    private void moveBy(int x, int y)
+    public void moveBy(int x, int y)
     {
         moveTo(mWindowParams.x + x, mWindowParams.y + y);
     }
     
-    private void smoothMoveTo(int x, int y)
+    public void smoothMoveTo(int x, int y)
     {
         smoothMoveBy(x - mWindowParams.x, y - mWindowParams.y);
     }
     
-    private void smoothMoveBy(int dx, int dy)
+    public void smoothMoveBy(int dx, int dy)
     {
         Log.i(TAG, "smoothMoveBy: (" + dx + ", " + dy + ")");
         TopViewAnimator anim = new TopViewAnimator(dx, dy);
