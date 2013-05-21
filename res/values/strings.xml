@@ -5,11 +5,11 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
 
-    <string name="menu">...</string>
+    <string name="menu"></string>
     <string name="hide_menu">^</string>
     
     <string name="portrait">Portrait</string>
     <string name="landscape">Landscape</string>
-    <string name="disable">L</string>
-    <string name="auto_rotate">A</string>
+    <string name="disable"></string>
+    <string name="auto_rotate"></string>
 </resources>

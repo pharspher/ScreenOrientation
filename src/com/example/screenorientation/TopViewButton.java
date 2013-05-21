@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.PorterDuff.Mode;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
@@ -21,9 +22,9 @@ import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
-import android.widget.Button;
+import android.widget.ImageButton;
 
-public class TopViewButton extends Button
+public class TopViewButton extends ImageButton
 {
     private static final String TAG = "TopViewButton";
     
@@ -89,7 +90,7 @@ public class TopViewButton extends Button
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY)
         {
-            Log.i(TAG, "onScroll()");
+            //Log.i(TAG, "onScroll()");
             return false;
         }
         
@@ -198,7 +199,7 @@ public class TopViewButton extends Button
         super.onConfigurationChanged(newConfig);
     }
     
-    public void setOnConfigurationChagnedListener(OnConfigurationChangedListener listener)
+    public void setOnConfigurationChangedListener(OnConfigurationChangedListener listener)
     {
         mConfigurationChangedListener = listener;
     }
@@ -264,6 +265,7 @@ public class TopViewButton extends Button
                         removeCallbacks(mPendingCheckLongClickRunnable);
                     }
                 }
+                /*
                 Log.d("roger_tag", "slop: " + mDragSlop);
                 Log.d("roger_tag", "x_start: " + (mTouchStartX));
                 Log.d("roger_tag", "y_start: " + (mTouchStartY));
@@ -271,7 +273,7 @@ public class TopViewButton extends Button
                 Log.d("roger_tag", "y: " + y);
                 Log.d("roger_tag", "x_diff: " + (x - mTouchStartX));
                 Log.d("roger_tag", "y_diff: " + (y - mTouchStartY));
-                
+                */
                 if (mIsDragEnabled) {
                     if (Math.abs(x - mTouchStartRawX) > mDragSlop || Math.abs(y - mTouchStartRawY) > mDragSlop) {
                         mIsDragging = true;
@@ -452,12 +454,28 @@ public class TopViewButton extends Button
     
     private void updateButtonDownEffect()
     {
-        this.getBackground().setColorFilter(Color.DKGRAY, Mode.MULTIPLY);
+        Drawable background = this.getBackground();
+        if (background != null) {
+            background.setColorFilter(Color.DKGRAY, Mode.MULTIPLY);
+        }
+        
+        Drawable foreground = this.getDrawable();
+        if (foreground != null) {
+            foreground.setColorFilter(Color.DKGRAY, Mode.MULTIPLY);
+        }
     }
     
     private void restoreColor()
     {
-        this.getBackground().clearColorFilter();
+        Drawable background = this.getBackground();
+        if (background != null) {
+            background.clearColorFilter();
+        }
+        
+        Drawable foreground = this.getDrawable();
+        if (foreground != null) {
+            foreground.clearColorFilter();
+        }
         //this.getBackground().setColorFilter(Color.parseColor("#FFFF5555"), Mode.MULTIPLY);
     }
     

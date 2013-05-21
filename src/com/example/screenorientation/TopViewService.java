@@ -5,15 +5,23 @@ import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
+import android.util.Log;
+import android.view.Display;
+import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+import android.widget.ImageView.ScaleType;
 
-import com.example.screenorientation.TopViewMenuGroup.OnSubMenuItemClickListener;
+import com.example.screenorientation.TopViewButton.OnTopViewButtonClickListener;
+import com.example.screenorientation.TopViewButton.OnTopViewButtonDragListener;
 
 public class TopViewService extends Service
 {
-    private TopViewButton mLauncherButton;
+    private TopViewButton mMainButton;
     
     private WindowManager mWindowManager;
     
@@ -25,6 +33,8 @@ public class TopViewService extends Service
     private ForceRotateManager mForceRotateManager;
     private TopViewMenuGroup mMenuGroup;
     
+    private int mAutoRotateState = 1;
+    
     @Override
     public void onCreate()
     {
@@ -32,11 +42,87 @@ public class TopViewService extends Service
         mWindowManager = (WindowManager)getSystemService(WINDOW_SERVICE);
         mForceRotateManager = ForceRotateManager.getInstance(this);
         
-        mLauncherButton = new TopViewButton(this);
-        mLauncherButton.setText(R.string.menu);
-        mLauncherButton.setWidth(this.getResources().getDimension(R.dimen.button_launcher_width));
-        mLauncherButton.setHeight(this.getResources().getDimension(R.dimen.button_launcher_height));
+        mMainButton = new TopViewButton(this);
+        //mMainButton.setText(R.string.menu);
+        mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.unlock));
+        mMainButton.setScaleType(ScaleType.FIT_CENTER);
         
+        mMainButton.setWidth(this.getResources().getDimension(R.dimen.button_launcher_width));
+        mMainButton.setHeight(this.getResources().getDimension(R.dimen.button_launcher_height));
+        
+        try {
+            mAutoRotateState = Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION);
+        } catch (SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+        if (mAutoRotateState == 1) {
+            mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.lock));
+        } else if (mAutoRotateState == 0) {
+            mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.unlock));
+        }
+        
+        mMainButton.setOnTopViewButtonClickListener(new OnTopViewButtonClickListener()
+        {
+            @Override
+            public void onClick(TopViewButton buttonView)
+            {
+                mAutoRotateState = (mAutoRotateState + 1) % 2;
+                if (mAutoRotateState == 0) {
+                    setAutoOrientationEnabled(getContentResolver(), false);
+                    int rotation = mWindowManager.getDefaultDisplay().getRotation();
+                    Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, rotation);
+                    mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.unlock));
+                } else if (mAutoRotateState == 1) {
+                    setAutoOrientationEnabled(getContentResolver(), true);
+                    mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.lock));
+                }
+            }
+        });
+        //mMainButton.setBackground(mMainButton.getResources().getDrawable(R.drawable.menu));
+        
+        mMainButton.setDragEnabled(true);
+        
+        mMainButton.setOnTopViewButtonDragListener(new OnTopViewButtonDragListener()
+        {
+            @Override
+            public void onDrag(TopViewButton buttonView, MotionEvent e)
+            {
+            }
+        });
+        
+        mMainButton.setOnConfigurationChangedListener(new TopViewButton.OnConfigurationChangedListener()
+        {
+            @Override
+            public void onConfigurationChagned(Configuration newConfig)
+            {
+                Display display = mWindowManager.getDefaultDisplay();
+                Point displaySize = new Point();
+                display.getSize(displaySize);
+                
+                WindowManager.LayoutParams mainParams = (LayoutParams)mMainButton.getLayoutParams();
+                
+                if (mainParams.x != 0) {
+                    mainParams.x = displaySize.x - mainParams.width;
+                }
+                
+
+                    float ratio = (mainParams.y + mainParams.height) / (float)displaySize.x;
+                    mainParams.y = (int)Math.floor((ratio * displaySize.y) + 0.5f) - mainParams.height;
+                    if (mainParams.y  < getStatusBarHeight()) {
+                        //mainParams.y = displaySize.y - mainParams.height;
+                        mainParams.y  = getStatusBarHeight();
+                    }
+
+                
+                
+                Log.d("roger_tag", "screen height: " + displaySize.y);
+                Log.d("roger_tag", "y: " + (mainParams.y + mainParams.height));
+                
+                mWindowManager.updateViewLayout(mMainButton, mainParams);
+            }
+        });
+        
+        mMainButton.show();
         /*
         mLandscapeButton = new TopViewButton(this);
         mLandscapeButton.setText(R.string.landscape);
@@ -51,17 +137,21 @@ public class TopViewService extends Service
         mPortraitButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
         */
         
+        /*
         mDisableButton = new TopViewButton(this);
         mDisableButton.setText(R.string.disable);
         mDisableButton.setWidth(this.getResources().getDimension(R.dimen.button_option_width));
         mDisableButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
+        mDisableButton.setBackground(getResources().getDrawable(R.drawable.lock));
         
         mAutoRotateButton = new TopViewButton(this);
         mAutoRotateButton.setText(R.string.auto_rotate);
         mAutoRotateButton.setWidth(this.getResources().getDimension(R.dimen.button_option_width));
         mAutoRotateButton.setHeight(this.getResources().getDimension(R.dimen.button_option_height));
-        
-        mMenuGroup = new TopViewMenuGroup(mLauncherButton);
+        mAutoRotateButton.setBackground(this.getResources().getDrawable(R.drawable.unlock));
+        */
+        //mMenuGroup = new TopViewMenuGroup(mLauncherButton);
+        /*
         mMenuGroup.addSubMenu(mAutoRotateButton, new OnSubMenuItemClickListener()
         {
             @Override
@@ -70,6 +160,7 @@ public class TopViewService extends Service
                 mForceRotateManager.reset();
                 setAutoOrientationEnabled(getContentResolver(), true);
                 mLauncherButton.setText(R.string.auto_rotate);
+                mLauncherButton.setBackground(getResources().getDrawable(R.drawable.unlock));
             }
         });
         
@@ -84,9 +175,10 @@ public class TopViewService extends Service
                 int rotation = mWindowManager.getDefaultDisplay().getRotation();
                 Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, rotation);
                 mLauncherButton.setText(R.string.disable);
+                mLauncherButton.setBackground(getResources().getDrawable(R.drawable.lock));
             }
         });
-        
+        */
         /*
         mMenuGroup.addSubMenu(mPortraitButton, new OnSubMenuItemClickListener()
         {
@@ -121,5 +213,15 @@ public class TopViewService extends Service
     private void setAutoOrientationEnabled(ContentResolver resolver, boolean enabled)
     {
         Settings.System.putInt(resolver, Settings.System.ACCELEROMETER_ROTATION, enabled ? 1 : 0);
+    }
+    
+    private int getStatusBarHeight()
+    {
+        int result = 0;
+        int resourceId = mMainButton.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = mMainButton.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
     }
 }

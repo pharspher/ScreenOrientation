@@ -8,7 +8,6 @@ import android.graphics.Point;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 
@@ -49,6 +48,7 @@ public class TopViewMenuGroup
                 }
             }
         });
+        //mMainButton.setBackground(mMainButton.getResources().getDrawable(R.drawable.menu));
         
         mMainButton.setDragEnabled(true);
         
@@ -64,7 +64,7 @@ public class TopViewMenuGroup
             }
         });
         
-        mMainButton.setOnConfigurationChagnedListener(new TopViewButton.OnConfigurationChangedListener()
+        mMainButton.setOnConfigurationChangedListener(new TopViewButton.OnConfigurationChangedListener()
         {
             @Override
             public void onConfigurationChagned(Configuration newConfig)
