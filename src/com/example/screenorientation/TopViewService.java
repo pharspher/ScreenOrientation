@@ -11,6 +11,7 @@ import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
 import android.view.Display;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -46,6 +47,7 @@ public class TopViewService extends Service
         //mMainButton.setText(R.string.menu);
         mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.unlock));
         mMainButton.setScaleType(ScaleType.FIT_CENTER);
+        mMainButton.setBackground(getResources().getDrawable(R.drawable.button_background));
         
         mMainButton.setWidth(this.getResources().getDimension(R.dimen.button_launcher_width));
         mMainButton.setHeight(this.getResources().getDimension(R.dimen.button_launcher_height));
@@ -56,9 +58,9 @@ public class TopViewService extends Service
             e.printStackTrace();
         }
         if (mAutoRotateState == 1) {
-            mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.lock));
-        } else if (mAutoRotateState == 0) {
             mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.unlock));
+        } else if (mAutoRotateState == 0) {
+            mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.lock));
         }
         
         mMainButton.setOnTopViewButtonClickListener(new OnTopViewButtonClickListener()
@@ -71,10 +73,11 @@ public class TopViewService extends Service
                     setAutoOrientationEnabled(getContentResolver(), false);
                     int rotation = mWindowManager.getDefaultDisplay().getRotation();
                     Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, rotation);
-                    mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.unlock));
+                    mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.lock));
+                    mMainButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                 } else if (mAutoRotateState == 1) {
                     setAutoOrientationEnabled(getContentResolver(), true);
-                    mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.lock));
+                    mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.unlock));
                 }
             }
         });
