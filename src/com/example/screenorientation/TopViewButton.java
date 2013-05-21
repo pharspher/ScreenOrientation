@@ -258,6 +258,7 @@ public class TopViewButton extends ImageButton
             int x = (int)event.getRawX();
             int y = (int)event.getRawY();
             if (!mIsDragging) {
+                /*
                 if (!withinViewBound(event.getX(), event.getY())) {
                     mIsPressedDown = false;
                     restoreColor();
@@ -265,6 +266,7 @@ public class TopViewButton extends ImageButton
                         removeCallbacks(mPendingCheckLongClickRunnable);
                     }
                 }
+                */
                 /*
                 Log.d("roger_tag", "slop: " + mDragSlop);
                 Log.d("roger_tag", "x_start: " + (mTouchStartX));
@@ -285,8 +287,8 @@ public class TopViewButton extends ImageButton
                     }
                 }
             } else {
-                mWindowParams.x = (int)(x - mTouchStartX);
-                mWindowParams.y = (int)(y - mTouchStartY);
+                mWindowParams.x = (int)(x - mWindowParams.width / 2f);//(x - mTouchStartX);
+                mWindowParams.y = (int)(y - mWindowParams.height / 2f);//(y - mTouchStartY);
                 if (mWindowParams.y <= mStatusBarHeight) {
                     mWindowParams.y = mStatusBarHeight;
                 }
