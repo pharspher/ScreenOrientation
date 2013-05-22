@@ -10,9 +10,9 @@ public class MainActivity extends Activity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
         Intent serviceIntent = new Intent();
         serviceIntent.setClassName("com.example.screenorientation", "com.example.screenorientation.TopViewService");
         this.startService(serviceIntent);
+        finish();
     }
 }

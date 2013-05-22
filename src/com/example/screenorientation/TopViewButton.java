@@ -50,7 +50,7 @@ public class TopViewButton extends ImageButton
     private WindowManager mWindowManager;
     
     private int mWidth = 500;
-    private int mHeight =150;
+    private int mHeight = 150;
     
     private int mDragSlop;
     private int mInViewBoundSlop;
@@ -161,7 +161,7 @@ public class TopViewButton extends ImageButton
         mGestureDetector = new GestureDetector(mContext, mOnGestureListener);
         
         mInViewBoundSlop = ViewConfiguration.get(mContext).getScaledTouchSlop();
-        mDragSlop = 2 * mInViewBoundSlop;
+        mDragSlop = mInViewBoundSlop;
         mStatusBarHeight = getStatusBarHeight();
         
         mWindowParams = new WindowManager.LayoutParams(
@@ -224,8 +224,8 @@ public class TopViewButton extends ImageButton
         mOnDragListener = listener;
     }
     
-    private int mTouchStartX;
-    private int mTouchStartY;
+    //private int mTouchStartX;
+    //private int mTouchStartY;
     private int mTouchStartRawX;
     private int mTouchStartRawY;
     
@@ -238,8 +238,8 @@ public class TopViewButton extends ImageButton
         switch (event.getAction()) {
         case MotionEvent.ACTION_DOWN:
             mIsPressedDown = true;
-            mTouchStartX = (int)event.getX();
-            mTouchStartY = (int)event.getY();
+            //mTouchStartX = (int)event.getX();
+            //mTouchStartY = (int)event.getY();
             mTouchStartRawX = (int)event.getRawX();
             mTouchStartRawY = (int)event.getRawY();
             updateButtonDownEffect();
@@ -249,8 +249,8 @@ public class TopViewButton extends ImageButton
             return false;
         case MotionEvent.ACTION_MOVE:
             if (!mIsPressedDown) {
-                mTouchStartX = (int)event.getX();
-                mTouchStartY = (int)(event.getY());
+                //mTouchStartX = (int)event.getX();
+                //mTouchStartY = (int)(event.getY());
                 mTouchStartRawX = (int)event.getRawX();
                 mTouchStartRawY = (int)event.getRawY();
                 mIsPressedDown = true;
@@ -279,8 +279,8 @@ public class TopViewButton extends ImageButton
                 if (mIsDragEnabled) {
                     if (Math.abs(x - mTouchStartRawX) > mDragSlop || Math.abs(y - mTouchStartRawY) > mDragSlop) {
                         mIsDragging = true;
-                        mTouchStartX = (int)event.getX();
-                        mTouchStartY = (int)(event.getY());
+                        //mTouchStartX = (int)event.getX();
+                        //mTouchStartY = (int)(event.getY());
                         if (mOnDragListener != null) {
                             mOnDragListener.onDrag(this, event);
                         }
@@ -329,6 +329,7 @@ public class TopViewButton extends ImageButton
         return super.onTouchEvent(event);
     }
     
+    /*
     private boolean withinViewBound(float x, float y)
     {
         if (x >= 0 - mInViewBoundSlop && x < mWindowParams.width + mInViewBoundSlop && y >= 0 - mInViewBoundSlop && y < mWindowParams.height + mInViewBoundSlop) {
@@ -336,6 +337,7 @@ public class TopViewButton extends ImageButton
         }
         return false;
     }
+    */
     
     public void setWidth(float w)
     {
@@ -515,7 +517,7 @@ public class TopViewButton extends ImageButton
         Log.i(TAG, "smoothMoveBy: (" + dx + ", " + dy + ")");
         TopViewAnimator anim = new TopViewAnimator(dx, dy);
         anim.setInterpolater(new DecelerateInterpolator());
-        anim.setDuration(100);
+        anim.setDuration(50);
         anim.setRefreshRate(5);
         anim.start();
     }
