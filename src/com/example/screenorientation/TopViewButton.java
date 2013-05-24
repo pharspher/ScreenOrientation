@@ -460,12 +460,12 @@ public class TopViewButton extends ImageButton
     {
         Drawable background = this.getBackground();
         if (background != null) {
-            background.setColorFilter(Color.DKGRAY, Mode.MULTIPLY);
+            background.setColorFilter(Color.LTGRAY, Mode.MULTIPLY);
         }
         
         Drawable foreground = this.getDrawable();
         if (foreground != null) {
-            foreground.setColorFilter(Color.DKGRAY, Mode.MULTIPLY);
+            foreground.setColorFilter(Color.LTGRAY, Mode.MULTIPLY);
         }
     }
     
