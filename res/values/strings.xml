@@ -12,4 +12,9 @@
     <string name="landscape">Landscape</string>
     <string name="disable"></string>
     <string name="auto_rotate"></string>
+    
+    <string name="leave_dialog_title">Exit</string>
+    <string name="leave_dialog_message">Are you sure to quit this fucking app?</string>
+    <string name="leave_dialog_yes">Yes</string>
+    <string name="leave_dialog_no">No</string>
 </resources>

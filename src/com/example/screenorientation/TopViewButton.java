@@ -30,6 +30,7 @@ public class TopViewButton extends ImageButton
     
     private OnTopViewButtonClickListener mOnClickListener;
     private OnTopViewButtonDragListener mOnDragListener;
+    private OnLongClickListener mOnLongClickListener;
     
     private boolean mIsPressedDown = false;
     private boolean mIsDragging = false;
@@ -276,8 +277,12 @@ public class TopViewButton extends ImageButton
                 Log.d("roger_tag", "x_diff: " + (x - mTouchStartX));
                 Log.d("roger_tag", "y_diff: " + (y - mTouchStartY));
                 */
-                if (mIsDragEnabled) {
-                    if (Math.abs(x - mTouchStartRawX) > mDragSlop || Math.abs(y - mTouchStartRawY) > mDragSlop) {
+                
+                if (Math.abs(x - mTouchStartRawX) > mDragSlop || Math.abs(y - mTouchStartRawY) > mDragSlop) {
+                    if (mPendingCheckLongClickRunnable != null) {
+                        removeCallbacks(mPendingCheckLongClickRunnable);
+                    }
+                    if (mIsDragEnabled) {
                         mIsDragging = true;
                         //mTouchStartX = (int)event.getX();
                         //mTouchStartY = (int)(event.getY());
@@ -418,10 +423,22 @@ public class TopViewButton extends ImageButton
     }
     
     @Override
+    public void setLongClickable(boolean isLongClickable)
+    {
+        mIsLongPressEnabled = isLongClickable;
+    }
+    
+    @Override
+    public void setOnLongClickListener(OnLongClickListener l)
+    {
+        mOnLongClickListener = l;
+    }
+
+    @Override
     public boolean performLongClick()
     {
-        mIsDragging = true;
-        return super.performLongClick();
+        mOnLongClickListener.onLongClick(this);
+        return true;
     }
     
     class CheckForLongClickRunnable implements Runnable

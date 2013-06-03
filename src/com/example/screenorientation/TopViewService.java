@@ -2,8 +2,11 @@ package com.example.screenorientation;
 
 import android.app.Notification;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.database.ContentObserver;
 import android.graphics.Point;
@@ -15,7 +18,9 @@ import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
 import android.view.Display;
 import android.view.HapticFeedbackConstants;
+import android.view.View;
 import android.view.WindowManager;
+import android.view.View.OnLongClickListener;
 import android.view.WindowManager.LayoutParams;
 import android.widget.ImageView.ScaleType;
 
@@ -24,6 +29,9 @@ import com.example.screenorientation.TopViewButton.OnTopViewButtonClickListener;
 public class TopViewService extends Service
 {
     private static final String TAG = TopViewService.class.getSimpleName();
+    
+    public static final String ACTION_FINISH_SERVICE = "com.example.screenorientation.finish_service";
+    
     private TopViewButton mMainButton;
     
     private WindowManager mWindowManager;
@@ -58,6 +66,15 @@ public class TopViewService extends Service
                 mMainButton.setImageDrawable(getResources().getDrawable(R.drawable.lock));
             }
             super.onChange(selfChange);
+        }
+    };
+    
+    private BroadcastReceiver mFinishBroadcastReceiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            TopViewService.this.stopSelf();
         }
     };
     
@@ -105,7 +122,21 @@ public class TopViewService extends Service
             }
         });
         
+        mMainButton.setOnLongClickListener(new OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View v)
+            {
+                Intent i = new Intent();
+                i.setClass(TopViewService.this, LeaveDialogActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+                return true;
+            }
+        });
+        
         mMainButton.setDragEnabled(true);
+        mMainButton.setLongClickable(true);
         
         /*
         mMainButton.setOnTopViewButtonDragListener(new OnTopViewButtonDragListener()
@@ -226,6 +257,7 @@ public class TopViewService extends Service
         */
         
         this.getContentResolver().registerContentObserver(AUTO_ROTATE_SETTING_URI, false, mAutoRotateObserver);
+        this.registerReceiver(mFinishBroadcastReceiver, new IntentFilter(ACTION_FINISH_SERVICE));
         
         startForeground(4321, new Notification());
     }
@@ -254,7 +286,10 @@ public class TopViewService extends Service
     @Override
     public void onDestroy()
     {
+        this.unregisterReceiver(mFinishBroadcastReceiver);
         this.getContentResolver().unregisterContentObserver(mAutoRotateObserver);
+        WindowManager wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
+        wm.removeView(mMainButton);
         super.onDestroy();
     }
 }

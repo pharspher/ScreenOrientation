@@ -30,6 +30,11 @@
             android:name="com.example.screenorientation.TopViewService"
             android:exported="false">
         </service>
+        <activity
+            android:name="com.example.screenorientation.LeaveDialogActivity"
+            android:label="@string/app_name"
+            android:theme="@style/dialog_activiy">
+        </activity>
     </application>
 
 </manifest>
